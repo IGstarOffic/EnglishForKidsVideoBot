@@ -10,75 +10,62 @@
             text-align: center;
             margin-top: 50px;
         }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
         #console {
             margin-top: 20px;
-            white-space: pre-wrap;
-            font-family: monospace;
-            background-color: #f0f0f0;
-            padding: 10px;
+            height: 200px;
+            overflow-y: scroll;
             border: 1px solid #ccc;
-            max-height: 300px;
-            overflow-y: auto;
+            padding: 10px;
+            background-color: #f4f4f4;
+            font-family: monospace;
+            white-space: pre-wrap;
         }
     </style>
 </head>
 <body>
     <h1>Request Pinger</h1>
-
     <div id="console"></div>
 
     <script>
         const consoleDiv = document.getElementById('console');
-        let intervalId; // ID для интервала
+        const url = 'https://e44abba4-307c-4e6c-ad40-0e911830d74e-00-3c43xz1yrf1cz.sisko.replit.dev/';
 
-        // Функция для отправки запроса на сервер
+        // Функция для отправки запроса
         function sendRequest() {
-            fetch('https://e44abba4-307c-4e6c-ad40-0e911830d74e-00-3c43xz1yrf1cz.sisko.replit.dev/')
-                .then(response => response.text())
-                .then(data => {
-                    const message = `Request sent at: ${new Date().toLocaleTimeString()} - Server response: ${data}`;
-                    addMessageToConsole(message);
-                    // Сохраняем в localStorage
-                    saveConsoleMessages();
-                })
-                .catch(error => {
-                    const message = `Error at: ${new Date().toLocaleTimeString()} - ${error}`;
-                    addMessageToConsole(message);
-                    saveConsoleMessages();
-                });
+            fetch(url, {
+                method: 'GET', // или 'POST', если это необходимо
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+            .then(response => {
+                // В этом случае нам не нужно принимать ответ
+                if (response.ok) {
+                    consoleDiv.innerHTML += `Request sent at: ${new Date().toLocaleTimeString()} - Request successfully sent.\n`;
+                } else {
+                    consoleDiv.innerHTML += `Request sent at: ${new Date().toLocaleTimeString()} - Error: ${response.statusText}\n`;
+                }
+            })
+            .catch(error => {
+                consoleDiv.innerHTML += `Request sent at: ${new Date().toLocaleTimeString()} - Error: ${error}\n`;
+            });
         }
 
-        // Функция для добавления сообщения в консоль
-        function addMessageToConsole(message) {
-            consoleDiv.innerHTML += `${message}\n`;
-            consoleDiv.scrollTop = consoleDiv.scrollHeight;  // Прокручиваем консоль вниз
-        }
-
-        // Функция для сохранения сообщений консоли в localStorage
-        function saveConsoleMessages() {
-            localStorage.setItem('consoleMessages', consoleDiv.innerHTML);
-        }
-
-        // Функция для загрузки сообщений из localStorage
-        function loadConsoleMessages() {
-            const savedMessages = localStorage.getItem('consoleMessages');
-            if (savedMessages) {
-                consoleDiv.innerHTML = savedMessages;
-            }
-        }
-
-        // Загружаем сообщения консоли при старте
-        loadConsoleMessages();
-
-        // Функция для автоматического начала отправки запросов
+        // Функция для постоянной отправки запросов каждую секунду
         function startSendingRequests() {
-            // Настроим таймер для отправки запросов каждые 3 минуты
-            intervalId = setInterval(sendRequest, 180000); // 180000 ms = 3 минуты
-            sendRequest(); // Отправим запрос сразу при запуске
+            setInterval(sendRequest, 1000); // Отправляем запрос каждую секунду
         }
 
-        // Запускаем пинг запросов при загрузке страницы
-        startSendingRequests();
+        // Начинаем отправлять запросы при загрузке страницы
+        window.onload = function() {
+            startSendingRequests();
+        }
     </script>
 </body>
 </html>
