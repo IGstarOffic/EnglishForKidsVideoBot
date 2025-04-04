@@ -10,26 +10,25 @@
             text-align: center;
             margin-top: 50px;
         }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 10px;
+        #console {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            max-height: 300px;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
     <h1>Request Pinger</h1>
-    <button id="startBtn">Start</button>
-    <button id="stopBtn" disabled>Stop</button>
 
-    <div id="console" style="margin-top: 20px;"></div>
+    <div id="console"></div>
 
     <script>
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
         const consoleDiv = document.getElementById('console');
-
         let intervalId; // ID для интервала
 
         // Функция для отправки запроса на сервер
@@ -37,48 +36,49 @@
             fetch('https://e44abba4-307c-4e6c-ad40-0e911830d74e-00-3c43xz1yrf1cz.sisko.replit.dev/')
                 .then(response => response.text())
                 .then(data => {
-                    consoleDiv.innerHTML += `<p>Request sent at: ${new Date().toLocaleTimeString()} - Server response: ${data}</p>`;
+                    const message = `Request sent at: ${new Date().toLocaleTimeString()} - Server response: ${data}`;
+                    addMessageToConsole(message);
+                    // Сохраняем в localStorage
+                    saveConsoleMessages();
                 })
                 .catch(error => {
-                    consoleDiv.innerHTML += `<p>Error: ${error}</p>`;
+                    const message = `Error at: ${new Date().toLocaleTimeString()} - ${error}`;
+                    addMessageToConsole(message);
+                    saveConsoleMessages();
                 });
         }
 
-        // Функция, которая запускает отправку запросов
+        // Функция для добавления сообщения в консоль
+        function addMessageToConsole(message) {
+            consoleDiv.innerHTML += `${message}\n`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;  // Прокручиваем консоль вниз
+        }
+
+        // Функция для сохранения сообщений консоли в localStorage
+        function saveConsoleMessages() {
+            localStorage.setItem('consoleMessages', consoleDiv.innerHTML);
+        }
+
+        // Функция для загрузки сообщений из localStorage
+        function loadConsoleMessages() {
+            const savedMessages = localStorage.getItem('consoleMessages');
+            if (savedMessages) {
+                consoleDiv.innerHTML = savedMessages;
+            }
+        }
+
+        // Загружаем сообщения консоли при старте
+        loadConsoleMessages();
+
+        // Функция для автоматического начала отправки запросов
         function startSendingRequests() {
-            // Сохраняем состояние, чтобы после перезагрузки продолжить
-            localStorage.setItem('isRequesting', 'true');
-
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
-
-            // Отправляем первый запрос сразу
-            sendRequest();
-            
             // Настроим таймер для отправки запросов каждые 3 минуты
-            intervalId = setInterval(sendRequest, 10000); 
+            intervalId = setInterval(sendRequest, 180000); // 180000 ms = 3 минуты
+            sendRequest(); // Отправим запрос сразу при запуске
         }
 
-        // Функция для остановки отправки запросов
-        function stopSendingRequests() {
-            localStorage.setItem('isRequesting', 'false');
-
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-
-            clearInterval(intervalId); // Останавливаем таймер
-        }
-
-        // Обработчик кнопки Start
-        startBtn.addEventListener('click', startSendingRequests);
-
-        // Обработчик кнопки Stop
-        stopBtn.addEventListener('click', stopSendingRequests);
-
-        // Проверяем, если состояние сохранено в localStorage (т.е. запросы продолжаются)
-        if (localStorage.getItem('isRequesting') === 'true') {
-            startSendingRequests();
-        }
+        // Запускаем пинг запросов при загрузке страницы
+        startSendingRequests();
     </script>
 </body>
 </html>
