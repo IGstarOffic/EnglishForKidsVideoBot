@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Pinger</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Request Pinger</h1>
+    <button id="startBtn">Start</button>
+    <button id="stopBtn" disabled>Stop</button>
+
+    <div id="console" style="margin-top: 20px;"></div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const consoleDiv = document.getElementById('console');
+
+        let intervalId; // ID для интервала
+
+        // Функция для отправки запроса на сервер
+        function sendRequest() {
+            fetch('https://e44abba4-307c-4e6c-ad40-0e911830d74e-00-3c43xz1yrf1cz.sisko.replit.dev/')
+                .then(response => response.text())
+                .then(data => {
+                    consoleDiv.innerHTML += `<p>Request sent at: ${new Date().toLocaleTimeString()} - Server response: ${data}</p>`;
+                })
+                .catch(error => {
+                    consoleDiv.innerHTML += `<p>Error: ${error}</p>`;
+                });
+        }
+
+        // Функция, которая запускает отправку запросов
+        function startSendingRequests() {
+            // Сохраняем состояние, чтобы после перезагрузки продолжить
+            localStorage.setItem('isRequesting', 'true');
+
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+
+            // Отправляем первый запрос сразу
+            sendRequest();
+            
+            // Настроим таймер для отправки запросов каждые 3 минуты
+            intervalId = setInterval(sendRequest, 10000); 
+        }
+
+        // Функция для остановки отправки запросов
+        function stopSendingRequests() {
+            localStorage.setItem('isRequesting', 'false');
+
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+
+            clearInterval(intervalId); // Останавливаем таймер
+        }
+
+        // Обработчик кнопки Start
+        startBtn.addEventListener('click', startSendingRequests);
+
+        // Обработчик кнопки Stop
+        stopBtn.addEventListener('click', stopSendingRequests);
+
+        // Проверяем, если состояние сохранено в localStorage (т.е. запросы продолжаются)
+        if (localStorage.getItem('isRequesting') === 'true') {
+            startSendingRequests();
+        }
+    </script>
+</body>
+</html>
